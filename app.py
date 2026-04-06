@@ -1,4 +1,14 @@
+from pawpal_system import Owner, Pet, Task, Scheduler, Priority, TimePreference
 import streamlit as st
+
+if "owner" not in st.session_state:
+    st.session_state["owner"] = None
+if "pet" not in st.session_state:
+    st.session_state["pet"] = None
+if "tasks" not in st.session_state:
+    st.session_state["tasks"] = []
+if "scheduler" not in st.session_state:
+    st.session_state["scheduler"] = None
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -58,31 +68,45 @@ with col3:
     priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 
 if st.button("Add task"):
-    st.session_state.tasks.append(
-        {"title": task_title, "duration_minutes": int(duration), "priority": priority}
-    )
+    if st.session_state.scheduler is None:
+        st.session_state.owner = Owner(name=owner_name, available_minutes=120)
+        st.session_state.pet = Pet(name=pet_name, species=species)
+        st.session_state.scheduler = Scheduler(
+            owner=st.session_state.owner,
+            pet=st.session_state.pet,
+            tasks=[],
+        )
 
-if st.session_state.tasks:
+    new_task = Task(
+        name=task_title,
+        category="general",
+        duration_minutes=int(duration),
+        priority=Priority[priority.upper()],
+        time_preference=TimePreference.ANY,
+    )
+    st.session_state.scheduler.add_task(new_task)
+
+current_tasks = st.session_state.scheduler.tasks if st.session_state.scheduler else []
+if current_tasks:
     st.write("Current tasks:")
-    st.table(st.session_state.tasks)
+    st.table([task.to_dict() for task in current_tasks])
 else:
     st.info("No tasks yet. Add one above.")
 
 st.divider()
 
 st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
+st.caption("Click the button to build a schedule from the current tasks.")
 
 if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+    if st.session_state.scheduler is None:
+        st.session_state.owner = Owner(name=owner_name, available_minutes=120)
+        st.session_state.pet = Pet(name=pet_name, species=species)
+        st.session_state.scheduler = Scheduler(
+            owner=st.session_state.owner,
+            pet=st.session_state.pet,
+            tasks=[],
+        )
+
+    plan = st.session_state.scheduler.generate_plan()
+    st.write(plan.summary())

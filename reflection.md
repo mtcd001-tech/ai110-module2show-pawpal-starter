@@ -41,8 +41,17 @@ I did not add `Task.assigned_to` or time slot structures, as the app only suppor
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+
+The scheduler detects conflicts by grouping high-priority tasks into time preference 
+buckets (morning, afternoon, evening, any) and warning when more than one HIGH priority 
+task shares the same bucket. This is a lightweight O(n) check that returns warning 
+messages instead of blocking scheduling.
+
+The tradeoff is that it does not check actual time overlaps based on duration — two 
+tasks in the "morning" bucket could realistically fit back-to-back, but the scheduler 
+still flags them as a conflict. This is reasonable for a first version because it 
+keeps the logic simple and avoids over-engineering, while still giving the owner a 
+useful heads-up to review their high-priority tasks.
 
 ---
 
