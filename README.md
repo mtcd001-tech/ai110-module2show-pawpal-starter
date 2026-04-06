@@ -1,71 +1,49 @@
-# PawPal+ (Module 2 Project)
+# PawPal+
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+PawPal+ is a Streamlit pet scheduling assistant that helps pet owners plan daily care tasks with smarter timing, priority handling, and recurring task automation. It produces a clear daily plan while highlighting conflicts and suggesting better scheduling choices.
 
-## Scenario
+## Overview
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+PawPal+ builds a daily care schedule for a pet owner by organizing tasks around time preference, priority, and available owner time. The app also supports recurring tasks and detects high-priority scheduling conflicts so users can keep care predictable and manageable.
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+## Features
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+- **Sorting by time preference**: Orders tasks in the natural daily flow of morning → afternoon → evening → any.
+- **Filtering by priority/status**: Lets users view tasks by priority or completion status using scheduler filters.
+- **Recurring task automation**: Completed daily or weekly tasks are re-created automatically for the next due date.
+- **Conflict detection**: Warns when two or more HIGH priority tasks share the same time preference bucket.
+- **Daily plan generation**: Builds a schedule based on available minutes and task constraints, then summarizes scheduled and skipped items.
 
-## What you will build
-
-Your final app should:
-
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
-
-## Getting started
-
-### Setup
+## Setup
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
 pip install -r requirements.txt
+streamlit run app.py
 ```
 
-### Suggested workflow
+## Testing
 
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
+Run the automated test suite with:
 
-## Smarter Scheduling
-
-PawPal+ includes several intelligent scheduling features:
-
-- **Sort by time preference**: Tasks are automatically ordered morning → afternoon → evening → any for a natural daily flow.
-- **Filter tasks**: Filter by priority level or completion status to focus on what matters.
-- **Recurring tasks**: Daily and weekly tasks auto-reschedule after being marked complete, using `timedelta` to calculate the next due date.
-- **Conflict detection**: The scheduler warns when two or more HIGH priority tasks share the same time slot, helping owners avoid overbooking.
-
-## Testing PawPal+
-
-To run the test suite:
 ```bash
 python -m pytest
 ```
 
-### What the tests cover
+## Smarter Scheduling
 
-- **Task completion**: Verifying that `mark_complete()` changes the task status to `True`
-- **Task addition**: Verifying that adding a task increases the scheduler's task count
-- **Sorting correctness**: Verifying that `sort_by_time()` returns tasks in order morning → afternoon → evening → any
-- **Recurrence logic**: Verifying that a daily task gets a new copy with `due_date = today + 1` after `reschedule_recurring()`
-- **Conflict detection**: Verifying that `detect_conflicts()` flags two HIGH priority tasks in the same time slot
+Phase 3 introduced more intelligent schedule generation by adding:
 
-### Confidence level
+- time-preference-aware sorting for more natural daily task flow
+- priority and completion filtering so users can focus on relevant tasks
+- recurring task rescheduling after completion
+- conflict detection for competing high-priority tasks
+- a `DailyPlan` summary model for scheduled and skipped task reporting
 
- (4/5) — Core scheduling logic is well tested. Edge cases like weekly recurrence and exact-fit scheduling could use more coverage.
+## Demo
+
+<a href="/course_images/ai110/screenshot.webp" target="_blank"><img src='/course_images/ai110/screenshot.webp' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>

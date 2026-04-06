@@ -36,8 +36,9 @@ I did not add `Task.assigned_to` or time slot structures, as the app only suppor
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+The scheduler considers two main constraints: the owner's available minutes per day, and each task's priority level. Tasks are sorted by a composite key that ranks daily recurring tasks first, then orders by time preference (morning before afternoon before evening), then by priority (high before medium before low). Completed tasks are filtered out before scheduling begins.
+
+I decided that time preference and recurrence mattered most because they reflect the natural structure of a pet care day. A feeding task that must happen in the morning should not be pushed aside by a low-priority afternoon task just because it was added to the list later.
 
 **b. Tradeoffs**
 
@@ -59,27 +60,29 @@ useful heads-up to review their high-priority tasks.
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used AI tools throughout the project for design brainstorming, generating class skeletons, implementing scheduling logic, writing tests, and refining the UI. The most helpful prompts were specific ones that referenced actual files using `#file:` or `#codebase`, and prompts that asked for comparisons between approaches rather than just a single solution. For example, asking Copilot to compare two sorting strategies helped me understand the tradeoffs before choosing one.
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+When Copilot reviewed my skeleton, it suggested adding `Task.assigned_to: Owner` and `Task.pet: Pet` fields to create a stronger association between tasks and their owners. I rejected this suggestion because the app only supports a single owner and a single pet. Adding those fields would have introduced unnecessary complexity and required changes throughout the codebase with no practical benefit for the current scope.
 
----
+I evaluated the suggestion by asking whether it would change any observable behavior in the app. Since the scheduler already receives the owner and pet directly, the extra fields on Task would have been redundant. I kept the simpler design and noted the change as a potential future improvement if the app ever needs to support multiple pets.
+
+I also chose not to accept Copilot's suggestion to inline the sort key as a lambda directly inside `sorted()`. The named helper function `task_sort_key` is slightly more verbose but significantly easier to read and modify. Readability mattered more than conciseness here.
+
+Using separate chat sessions for different phases helped keep context focused. The design session stayed on UML and class structure. The algorithm session stayed on sorting, filtering, and conflict logic. The testing session stayed on edge cases and fixtures. Mixing these concerns in a single session would have made it harder to get precise, relevant suggestions.
+
+
 
 ## 4. Testing and Verification
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+I tested five core behaviors: task completion status via `mark_complete()`, task addition via `add_task()`, sorting correctness via `sort_by_time()`, recurring task rescheduling after completion, and conflict detection when two HIGH priority tasks share a time slot. These tests were important because they cover the behaviors most likely to break silently — a sort that returns the wrong order, a recurring task that fails to reschedule, or a conflict that goes undetected would all produce incorrect plans without raising an exception.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+I am moderately confident the core scheduling logic works correctly for the happy path and the cases I tested. The areas I would test next are: weekly recurrence with date boundary conditions, a scheduler where available minutes is zero, tasks where duration exactly equals remaining time, and the interaction between filtering and scheduling when some tasks are already completed.
 
 ---
 
@@ -87,12 +90,12 @@ useful heads-up to review their high-priority tasks.
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+The scheduling logic came together cleanly. The decision to use a single composite sort key for recurrence, time preference, and priority made `generate_plan()` easy to read and extend. The CLI-first workflow of building and verifying logic in `main.py` before connecting to Streamlit also prevented UI issues from masking backend bugs.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+If I had another iteration, I would add a time slot model to replace the bucket-based conflict detection. Rather than grouping tasks into morning, afternoon, evening, and any, I would assign actual start and end times and check for duration-based overlaps. This would eliminate false conflict warnings for tasks that fit comfortably in the same part of the day.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+The most important thing I learned is that AI tools are most useful when the developer has already made the key architectural decisions. Copilot generated better code once I had defined the class structure, chosen the data types, and decided how the scheduler should work. When I asked open-ended questions without context, the suggestions were generic. When I asked specific questions grounded in my actual files, the suggestions were precise and actionable. The lead architect role is not about writing every line of code — it is about making decisions that give the AI enough structure to be genuinely helpful.

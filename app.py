@@ -14,38 +14,6 @@ st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
 
-st.markdown(
-    """
-Welcome to the PawPal+ starter app.
-
-This file is intentionally thin. It gives you a working Streamlit app so you can start quickly,
-but **it does not implement the project logic**. Your job is to design the system and build it.
-
-Use this app as your interactive demo once your backend classes/functions exist.
-"""
-)
-
-with st.expander("Scenario", expanded=True):
-    st.markdown(
-        """
-**PawPal+** is a pet care planning assistant. It helps a pet owner plan care tasks
-for their pet(s) based on constraints like time, priority, and preferences.
-
-You will design and implement the scheduling logic and connect it to this Streamlit UI.
-"""
-    )
-
-with st.expander("What you need to build", expanded=True):
-    st.markdown(
-        """
-At minimum, your system should:
-- Represent pet care tasks (what needs to happen, how long it takes, priority)
-- Represent the pet and the owner (basic info and preferences)
-- Build a plan/schedule for a day that chooses and orders tasks based on constraints
-- Explain the plan (why each task was chosen and when it happens)
-"""
-    )
-
 st.divider()
 
 st.subheader("Quick Demo Inputs (UI only)")
@@ -84,12 +52,30 @@ if st.button("Add task"):
         priority=Priority[priority.upper()],
         time_preference=TimePreference.ANY,
     )
-    st.session_state.scheduler.add_task(new_task)
+    st.session_state.scheduler.tasks.append(new_task)
 
 current_tasks = st.session_state.scheduler.tasks if st.session_state.scheduler else []
+priority_filter = st.selectbox(
+    "Filter tasks by priority",
+    ["all", "high", "medium", "low"],
+    index=0,
+)
+filter_priority = None if priority_filter == "all" else Priority[priority_filter.upper()]
+filtered_tasks = (
+    st.session_state.scheduler.filter_tasks(priority=filter_priority)
+    if st.session_state.scheduler
+    else []
+)
+
 if current_tasks:
     st.write("Current tasks:")
     st.table([task.to_dict() for task in current_tasks])
+
+    st.write("Filtered tasks:")
+    if filtered_tasks:
+        st.table([task.to_dict() for task in filtered_tasks])
+    else:
+        st.info("No tasks match the selected priority filter.")
 else:
     st.info("No tasks yet. Add one above.")
 
@@ -109,4 +95,27 @@ if st.button("Generate schedule"):
         )
 
     plan = st.session_state.scheduler.generate_plan()
+    warnings = st.session_state.scheduler.detect_conflicts()
+    if warnings:
+        for warning in warnings:
+            st.warning(
+                f"⚠️ Scheduling conflict detected — {warning} "
+                "Please move one task to another time of day or lower its priority."
+            )
+    else:
+        st.success(f"No conflicts detected. Total scheduled duration: {plan.total_duration()} minutes.")
+
+    sorted_scheduled = [
+        task
+        for task in st.session_state.scheduler.sort_by_time()
+        if task in plan.scheduled
+    ]
+    if sorted_scheduled:
+        st.subheader("Scheduled tasks")
+        st.table([task.to_dict() for task in sorted_scheduled])
+
+    if plan.skipped:
+        st.warning("Skipped tasks:")
+        st.table([task.to_dict() for task in plan.skipped])
+
     st.write(plan.summary())
