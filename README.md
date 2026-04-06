@@ -50,3 +50,22 @@ PawPal+ includes several intelligent scheduling features:
 - **Filter tasks**: Filter by priority level or completion status to focus on what matters.
 - **Recurring tasks**: Daily and weekly tasks auto-reschedule after being marked complete, using `timedelta` to calculate the next due date.
 - **Conflict detection**: The scheduler warns when two or more HIGH priority tasks share the same time slot, helping owners avoid overbooking.
+
+## Testing PawPal+
+
+To run the test suite:
+```bash
+python -m pytest
+```
+
+### What the tests cover
+
+- **Task completion**: Verifying that `mark_complete()` changes the task status to `True`
+- **Task addition**: Verifying that adding a task increases the scheduler's task count
+- **Sorting correctness**: Verifying that `sort_by_time()` returns tasks in order morning → afternoon → evening → any
+- **Recurrence logic**: Verifying that a daily task gets a new copy with `due_date = today + 1` after `reschedule_recurring()`
+- **Conflict detection**: Verifying that `detect_conflicts()` flags two HIGH priority tasks in the same time slot
+
+### Confidence level
+
+ (4/5) — Core scheduling logic is well tested. Edge cases like weekly recurrence and exact-fit scheduling could use more coverage.
