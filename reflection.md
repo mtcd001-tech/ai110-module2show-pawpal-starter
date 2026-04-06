@@ -12,11 +12,23 @@ The app is designed around three core user actions:
 + Generate and view a daily plan: The app produces a daily schedule based on the user's available time and task priorities, and explains why tasks were included or excluded.
 
 - What classes did you include, and what responsibilities did you assign to each?
+The app is built around five classes:
+
+- Owner: Holds information about the pet owner, including their name and how many minutes they have available in a day. Its main responsibility is providing the scheduler with time constraints.
+- Pet: A simple data class storing the pet's name and species. It gives the scheduler context about who is being cared for.
+- Task: Represents a single care activity (e.g. walk, feeding, medication). It stores the task name, category, duration in minutes, priority level (high/medium/low), and a preferred time of day. It can report whether it is urgent via `is_urgent()`.
+- Scheduler: The core logic class. It holds a reference to the owner, the pet, and a list of tasks. Its main responsibility is generating a `DailyPlan` by sorting tasks by priority and fitting them into the owner's available time.
+- DailyPlan: The output of the scheduler. It holds the list of scheduled tasks, the list of skipped tasks, and a reasoning string explaining why each decision was made.
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+After reviewing the skeleton with Copilot, I made three changes to the design:
+
+- **Added `Priority` and `TimePreference` enums**: Originally `priority` and `time_preference` were plain strings, which made the code fragile and hard to validate. Switching to enums prevents typos and makes the scheduler logic cleaner.
+- **Added `last_plan: Optional[DailyPlan]` to `Scheduler`**: Copilot pointed out that `explain_plan()` had no plan to describe, since `Scheduler` never stored the result of `generate_plan()`. Adding this field makes the two methods work together correctly.
+- **Changed `remove_task(task_name: str)` to `remove_task(task: Task)`**: Removing by name is ambiguous if two tasks share the same name. Accepting a `Task` object directly is more robust.
+
+I did not add `Task.assigned_to` or time slot structures, as the app only supports one owner and one pet, and `available_minutes` is sufficient for a first version.
 
 ---
 
